@@ -76,7 +76,7 @@ class Carrito {
             //
             if (foundProd) {
                 console.log(`Producto encontrado! ${foundProd.nombre}`)
-                const nuevoProd = new ProductoEnCarrito (sku, foundProd.nombre, cant);
+                const nuevoProd = new ProductoEnCarrito (sku, foundProd.nombre, cant, foundProd.precio);
                 const consulta = this.productos.find(prod => prod.sku === sku)
                 if (!consulta) {
                     this.productos.push(nuevoProd);
@@ -101,14 +101,16 @@ class Carrito {
                 //Se ejectuta si el producto existía en el carrito
                 if (cant < prodElim.cantidad) {
                     prodElim.cantidad -= cant
+                    this.precioTotal -= cant*prodElim.precio
                     resolve(`Se eliminan ${cant} unidad/es de ${prodElim.nombre}`)
                 }else if (cant >= prodElim.cantidad) {
                     const prodElimIndex = this.productos.indexOf(prodElim.sku);
                     delete this.productos[prodElimIndex]
+                    this.precioTotal -= prodElim.cantidad * prodElim.precio
                     resolve(`Se elimina ${prodElim.nombre} del carrito`)
                 }
             } else {
-                reject("El producto NO se encuentra en el carrito");
+                reject("El producto a eliminar NO se encuentra en el carrito");
             }
         })
     }
@@ -119,11 +121,13 @@ class ProductoEnCarrito {
         sku;       // Identificador único del producto
         nombre;    // Su nombre
         cantidad;  // Cantidad de este producto en el carrito
+        precio; //precio del producto agregado al carrito
     
-        constructor(sku, nombre, cantidad) {
+        constructor(sku, nombre, cantidad, precio) {
             this.sku = sku;
             this.nombre = nombre;
             this.cantidad = cantidad;
+            this.precio = precio;
         }
     
     }
@@ -142,6 +146,16 @@ function findProductBySku(sku) {
     });
 }
 
+function elimina(sku, cant) {
+    setTimeout(()=>{
+        const eliminado = mi_carrito.eliminarProducto(sku, cant)
+        eliminado.then((msg) => {
+            console.log(msg)
+        }).catch((msg) => {
+            console.error(msg)
+        })
+    }, 3500)
+}
 //--------ZONA TEST-----------------------------------
 const mi_carrito = new Carrito();
 console.log(mi_carrito);
@@ -152,17 +166,12 @@ mi_carrito.agregarProducto('RT324GD', 1); //Lavandina
 mi_carrito.agregarProducto('UI999TY', 3); //Fideos
 mi_carrito.agregarProducto('RT324XX', 2); // NO existe
 mi_carrito.agregarProducto('XX92LKI', 1); //Arroz
-mi_carrito.agregarProducto('PV332MJ', 1); //Cerveza
-mi_carrito.agregarProducto('OL883YE', 1); //Shampoo
-mi_carrito.agregarProducto('FN312PPE', 1); //Gaseosa
+// mi_carrito.agregarProducto('PV332MJ', 1); //Cerveza
+// mi_carrito.agregarProducto('OL883YE', 1); //Shampoo
+// mi_carrito.agregarProducto('FN312PPE', 1); //Gaseosa
 
-setTimeout(()=>{
-    const eliminado = mi_carrito.eliminarProducto('UI999TY', 2)
-    eliminado.then((msg) => {
-        console.log(msg)
-    }).catch((msg) => {
-        console.error(msg)
-    })
-}, 3500)
+
+elimina('UI999TY', 2) //pasa los parámetros a eliminarProducto que está dentro de un setTimeout para facilitar la prueba
+//disminuye el precioTotal, pero no se trabajó para eliminar las cateogrías asociadas.
 
 //-------- FIN ZONA TEST--------------------------------
