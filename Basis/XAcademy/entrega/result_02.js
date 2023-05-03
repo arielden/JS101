@@ -94,6 +94,24 @@ class Carrito {
             console.error(`Producto ${err}`);
         }
     }
+    eliminarProducto(sku, cant){
+        return new Promise((resolve, reject) => {
+            const prodElim = this.productos.find(prod => prod.sku === sku);
+            if (prodElim) {
+                //Se ejectuta si el producto existía en el carrito
+                if (cant < prodElim.cantidad) {
+                    prodElim.cantidad -= cant
+                    resolve(``)
+                }else if (cant >= prodElim.cantidad) {
+                    const prodElimIndex = this.productos.indexOf(prodElim.sku);
+                    delete this.productos[prodElimIndex]
+                    resolve(``)
+                }
+            } else {
+                reject("El producto NO se encuentra en el carrito");
+            }
+        })
+    }
 }
 
 // Cada producto que se agrega al carrito es creado con esta clase
@@ -137,5 +155,8 @@ mi_carrito.agregarProducto('XX92LKI', 1); //Arroz
 mi_carrito.agregarProducto('PV332MJ', 1); //Cerveza
 mi_carrito.agregarProducto('OL883YE', 1); //Shampoo
 mi_carrito.agregarProducto('FN312PPE', 1); //Gaseosa
+
+elimina = mi_carrito.eliminarProducto('KS944RUR', 1)
+elimina
 
 //-------- FIN ZONA DE PRUEBA--------------------------------
