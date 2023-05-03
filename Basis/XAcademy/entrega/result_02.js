@@ -38,6 +38,7 @@ class Producto {
         this.nombre = nombre;
         this.categoria = categoria;
         this.precio = precio;
+        this.stock = stock;
     }
 }
 
@@ -58,26 +59,40 @@ const productosDelSuper = [queso, gaseosa, cerveza, arroz, fideos, lavandina, sh
 
 // Cada cliente que venga a mi super va a crear un carrito
 class Carrito {
-    productos;      // Lista de productos agregados
-    categorias;     // Lista de las diferentes categorías de los productos en el carrito
-    precioTotal;    // Lo que voy a pagar al finalizar mi compra
+    productos = [];      // Lista de productos agregados
+    categorias = [];     // Lista de las diferentes categorías de los productos en el carrito
+    precioTotal = 0;    // Lo que voy a pagar al finalizar mi compra
 
     // Al crear un carrito, empieza vacío
-    constructor(productos=[], categorias=[], precioTotal=0) {
-        this.productos = productos;
-        this.categorias = categorias;
-        this.precioTotal = precioTotal;
+    constructor() {
+        this.productos;
+        this.categorias;
+        this.precioTotal;
     }
     async agregarProducto(sku, cant){
-        console.log(`Consultando por: ${sku}, cantidad: ${cant}...`)
-        let promise = await findProductBySku(sku);
-         promise.then((foundProd) => {
-            let nuevoProd = new ProductoEnCarrito (foundProd.sku, foundProd.nombre, cant)
-            this.productos.push(nuevoProd)
-        }).catch((err) => {
-            console.log(`This is the error: `,err)
-        })
-        
+        console.log(`Consultando por: ${sku}, cantidad: ${cant}...`);
+        try{
+            const foundProd = await findProductBySku(sku);
+            //const consulta = this.productos.includes(foundProd)
+            if (foundProd) {
+                console.log(`Producto encontrado! ${foundProd.nombre}`)
+                const nuevoProd = new ProductoEnCarrito (sku, foundProd.nombre, cant);
+                const consulta = this.productos.find(prod => prod.sku === sku)
+                if (!consulta) {
+                    this.productos.push(nuevoProd);
+                    this.precioTotal += foundProd.precio * cant;
+                    if (!this.categorias.includes(foundProd.categoria)) {
+                        this.categorias.push(foundProd.categoria);
+                    }
+                } else {
+                    const consultaIndex = this.productos.findIndex((prod) => prod.sku === sku)
+                    this.precioTotal += foundProd.precio * cant;
+                    this.productos[consultaIndex].cantidad += cant;
+                    }
+                }   
+            } catch (err) {
+            console.error(`Producto ${err}`);
+        }
     }
 }
 
@@ -98,39 +113,29 @@ class ProductoEnCarrito {
 // Función que busca un producto por su sku en "la base de datos"
 function findProductBySku(sku) {
     return new Promise((resolve, reject) => {
-        //setTimeout(() => {
+        setTimeout(() => {
             const foundProduct = productosDelSuper.find(product => product.sku === sku);
             if (foundProduct) {
                 resolve(foundProduct);
             } else {
-                reject(`Product ${sku} not found`);
+                reject(`sku: ${sku} No encontrado`);
             }
-        //}, 1500);
+        }, 1500);
     });
 }
-    /**
-     * función que agrega @{cantidad} de productos con @{sku} al carrito
-    */
-   //     async agregarProducto(sku, cantidad) {
-       //         console.log(`Agregando ${cantidad} ${sku}`);
-       
-//         // Busco el producto en la "base de datos"
-//         const producto = await findProductBySku(sku);
 
-//         console.log("Producto encontrado", producto);
-
-//         // Creo un producto nuevo
-//         const nuevoProducto = new ProductoEnCarrito(sku, producto.nombre, cantidad);
-//         this.productos.push(nuevoProducto);
-//         this.precioTotal = this.precioTotal + (producto.precio * cantidad);
-//         this.categorias.push(producto.categoria);
-//     }
-// }
-
-
-
+//--------ZONA DE PRUEBA-----------------------------------
 const mi_carrito = new Carrito();
 console.log(mi_carrito);
-mi_carrito.agregarProducto('UI999TY', 2);
 
-console.log(mi_carrito);
+mi_carrito.agregarProducto('UI999TY', 1); //Fideos
+mi_carrito.agregarProducto('KS944RUR', 2); //Queso
+mi_carrito.agregarProducto('RT324GD', 1); //Lavandina
+mi_carrito.agregarProducto('UI999TY', 4); //Fideos
+mi_carrito.agregarProducto('RT324XX', 2); // NO existe
+mi_carrito.agregarProducto('XX92LKI', 1); //Arroz
+mi_carrito.agregarProducto('PV332MJ', 1); //Cerveza
+mi_carrito.agregarProducto('OL883YE', 1); //Shampoo
+mi_carrito.agregarProducto('FN312PPE', 1); //Gaseosa
+
+//-------- FIN ZONA DE PRUEBA--------------------------------
