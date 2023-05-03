@@ -73,7 +73,7 @@ class Carrito {
         console.log(`Consultando por: ${sku}, cantidad: ${cant}...`);
         try{
             const foundProd = await findProductBySku(sku);
-            //const consulta = this.productos.includes(foundProd)
+            //
             if (foundProd) {
                 console.log(`Producto encontrado! ${foundProd.nombre}`)
                 const nuevoProd = new ProductoEnCarrito (sku, foundProd.nombre, cant);
@@ -91,7 +91,7 @@ class Carrito {
                     }
                 }   
             } catch (err) {
-            console.error(`Producto ${err}`);
+            console.error(err);
         }
     }
     eliminarProducto(sku, cant){
@@ -101,11 +101,11 @@ class Carrito {
                 //Se ejectuta si el producto existía en el carrito
                 if (cant < prodElim.cantidad) {
                     prodElim.cantidad -= cant
-                    resolve(``)
+                    resolve(`Se eliminan ${cant} unidad/es de ${prodElim.nombre}`)
                 }else if (cant >= prodElim.cantidad) {
                     const prodElimIndex = this.productos.indexOf(prodElim.sku);
                     delete this.productos[prodElimIndex]
-                    resolve(``)
+                    resolve(`Se elimina ${prodElim.nombre} del carrito`)
                 }
             } else {
                 reject("El producto NO se encuentra en el carrito");
@@ -136,27 +136,33 @@ function findProductBySku(sku) {
             if (foundProduct) {
                 resolve(foundProduct);
             } else {
-                reject(`sku: ${sku} No encontrado`);
+                reject(`SKU: ${sku} No encontrado`);
             }
         }, 1500);
     });
 }
 
-//--------ZONA DE PRUEBA-----------------------------------
+//--------ZONA TEST-----------------------------------
 const mi_carrito = new Carrito();
 console.log(mi_carrito);
 
 mi_carrito.agregarProducto('UI999TY', 1); //Fideos
 mi_carrito.agregarProducto('KS944RUR', 2); //Queso
 mi_carrito.agregarProducto('RT324GD', 1); //Lavandina
-mi_carrito.agregarProducto('UI999TY', 4); //Fideos
+mi_carrito.agregarProducto('UI999TY', 3); //Fideos
 mi_carrito.agregarProducto('RT324XX', 2); // NO existe
 mi_carrito.agregarProducto('XX92LKI', 1); //Arroz
 mi_carrito.agregarProducto('PV332MJ', 1); //Cerveza
 mi_carrito.agregarProducto('OL883YE', 1); //Shampoo
 mi_carrito.agregarProducto('FN312PPE', 1); //Gaseosa
 
-elimina = mi_carrito.eliminarProducto('KS944RUR', 1)
-elimina
+setTimeout(()=>{
+    const eliminado = mi_carrito.eliminarProducto('UI999TY', 2)
+    eliminado.then((msg) => {
+        console.log(msg)
+    }).catch((msg) => {
+        console.error(msg)
+    })
+}, 3500)
 
-//-------- FIN ZONA DE PRUEBA--------------------------------
+//-------- FIN ZONA TEST--------------------------------
