@@ -1,5 +1,4 @@
-from threading import Thread
-from time import sleep
+import asyncio
 
 class Producto():
     def __init__(self, sku:str, nombre:str, categoria:str, precio, stock=10):
@@ -26,22 +25,20 @@ class Carrito():
         self.categorias = categorias
         self.precioTotal = precioTotal
 
-    def agregarProducto(self, sku:str, cant:int):
+    async def agregarProducto(self, sku:str, cant:int):
         self.sku = sku
         self.cant = cant
 
         print(f"Consultando por {self.sku}, cantidad {self.cant}")
         try:
-            foundProd = Thread(target=findProductBySku, args=(self.sku,))
-            foundProd.start()
-            foundProd.join()
-            if foundProd.sku == self.sku:
+            foundProd = await findProductBySku(sku)
+            if foundProd:
                 print("Producto encontrado")
-                # nuevoProd = ProductoEnCarrito(self.sku, foundProd.nombre, self.cant, foundProd.precio)
-                # if nuevoProd not in self.productos:
-                #     self.productos.append(nuevoProd)
-        except Exception as err:
-            print(f"Ocurrió un error: {err}")
+                nuevoProd = ProductoEnCarrito(self.sku, foundProd.nombre, self.cant, foundProd.precio)
+                if nuevoProd not in self.productos:
+                    self.productos.append(nuevoProd)
+        except Exception:
+            print(f"Ocurrió un error")
 
 
 
@@ -53,22 +50,30 @@ class ProductoEnCarrito:
         self.precio = precio
 
 
-def findProductBySku(sku):
-    sleep(1)
+async def findProductBySku(sku):
+    await asyncio.sleep(2)
+    #found = False
     for prod in productosDelSuper:
         if prod.sku == sku:
             return prod
         else:
-            return "Nada" 
+            raise Exception
 
 mi_carrito = Carrito()
-print(mi_carrito)
 
-mi_carrito.agregarProducto('UI999TY', 1) #Fideos
-mi_carrito.agregarProducto('KS944RUR', 2) #Queso
-mi_carrito.agregarProducto('RT324GD', 1) #Lavandina
-mi_carrito.agregarProducto('UI999TY', 3) #Fideos
-mi_carrito.agregarProducto('RT324XX', 2) #NO existe
+prod_1 = ('UI999TY', 1) #Fideos
+prod_2 = ('KS944RUR', 2) #Queso
+prod_3 = ('RT324GD', 1) #Lavandina
+prod_4 = ('UI999TY', 3) #Fideos
+prod_5 = ('RT324XX', 2) #NO existe
 # mi_carrito.agregarProducto('XX92LKI', 1) #Arroz
+lista_carro = [prod_1, prod_2, prod_3, prod_4, prod_5]
 
-# print(mi_carrito.productos)
+async def main():
+    for prod in lista_carro:
+        task = asyncio.create_task(mi_carrito.agregarProducto(prod[0], prod[1]))
+    await task
+
+asyncio.run(main())
+
+print(mi_carrito.productos)

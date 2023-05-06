@@ -142,7 +142,7 @@ function findProductBySku(sku) {
             } else {
                 reject(`SKU: ${sku} No encontrado`);
             }
-        }, 1500);
+        }, 3000);
     });
 }
 
